@@ -7,6 +7,7 @@
 
 class Robot: public IterativeRobot
 {
+	DigitalOutput					indicatorLed;
 	Joystick 						joy;
 	JoystickButton 					buttonA;
 	JoystickButton 					buttonB;
@@ -44,6 +45,7 @@ class Robot: public IterativeRobot
 
 public:
 		Robot() : joy(0), /* gamepad at the first slot */
+		indicatorLed(0),
 		buttonA(&joy, 1),
 		buttonB(&joy, 2),
 		buttonX(&joy, 3),
@@ -99,6 +101,7 @@ public:
 		void RobotInit()
 		{
 			CameraServer::GetInstance()->StartAutomaticCapture();
+			indicatorLed.Set(1);
 
 			/*
 			while (true) {
@@ -206,10 +209,12 @@ public:
 
 				if (buttonA.Get() && (bool)gearHolder.IsFwdLimitSwitchClosed())
 				{
+					indicatorLed.Set(1);
 					gearHolder.Set(-0.25);
 				}
 				else if (buttonA.Get() && (bool)gearHolder.IsRevLimitSwitchClosed())
 				{
+					indicatorLed.Set(0);
 					gearHolder.Set(0.25);
 				}
 
@@ -233,7 +238,7 @@ public:
 
 				if (buttonY.Get())
 				{
-					climb.Set(0.2);
+					climb.Set(0.8);
 					climbToggle = false;
 				}
 				else if (climbToggle)
@@ -356,21 +361,21 @@ public:
 				gearHolder.Set(.25);
 			}
 
-			if (automode.GetSelected() == &automode1)
+			if (automode.GetSelected() == &automode1)	//center
 			{
 				//std::cout << "mode1" <<std::endl;
 				forwardFlag = false;
 				turnLeftFlag = false;
 				turnRightFlag = false;
 			}
-			else if (automode.GetSelected() == &automode2)
+			else if (automode.GetSelected() == &automode2) //left
 			{
 				//std::cout << "mode2" <<std::endl;
 				forwardFlag = true;
 				turnLeftFlag = false;
 				turnRightFlag = true;
 			}
-			else if (automode.GetSelected() == &automode3)
+			else if (automode.GetSelected() == &automode3) //right
 			{
 				forwardFlag = true;
 				turnRightFlag = false;
@@ -395,9 +400,17 @@ public:
 
 					timer1.Reset();
 					timer1.Start();
-					while (timer1.Get() < 2.33)
-					{
-						drive.Drive(.35, 0.0);
+
+					if( turnRightFlag ){ // in left position, reduce forward by ~5%
+						while (timer1.Get() < 1.95)
+						{
+							drive.Drive(.35, 0.0);
+						}
+					}else{
+						while (timer1.Get() < 2.18)
+						{
+							drive.Drive(.35, 0.0);
+						}
 					}
 					drive.Drive(0.0, 0.0);
 					forwardFlag = false;
@@ -444,7 +457,7 @@ public:
 
 				double mid = (((((targ1 + targ2)/2.0)-320.0)/320.0));
 //				double mid = 1.0;
-				//SmartDashboard::PutNumber("Tempmidpoint", mid);
+				SmartDashboard::PutNumber("Tempmidpoint", mid);
 //				double Turn = 0.0;
 
 //				if (mid >= (320 + 40)){
